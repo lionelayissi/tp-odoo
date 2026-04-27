@@ -1,8 +1,6 @@
 services:
   db:
     image: postgres:15
-    container_name: odoo-db
-    restart: always
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: odoo
@@ -11,23 +9,29 @@ services:
       - db_data:/var/lib/postgresql/data
     networks:
       - odoo_network
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
 
   odoo:
     image: odoo:18.0
-    container_name: odoo-app
-    restart: always
     ports:
       - "8069:8069"
     environment:
       HOST: db
       USER: odoo
       PASSWORD: odoo
-    depends_on:
-      - db
     volumes:
       - odoo_data:/var/lib/odoo
     networks:
       - odoo_network
+    depends_on:
+      - db
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
 
 volumes:
   db_data:
@@ -35,4 +39,4 @@ volumes:
 
 networks:
   odoo_network:
-    driver: bridge
+    driver: overlay
